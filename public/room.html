@@ -327,6 +327,10 @@
 <body style="height: 99vh; margin: 0px;">
 
   <div id="room-info" style="font-size: 0px;"></div>
+  <!-- Added missing myContainer for toggle button logic -->
+  <div id="myContainer" style="display:none;"></div>
+  <!-- Add detectCanvas for yolo.js detection -->
+  <canvas id="detectCanvas" width="640" height="480" style="display:none;"></canvas>
   
   <div id="videos">
     <button id="toggleBtn"></button>
@@ -390,6 +394,10 @@
     const myContainer = document.getElementById('myContainer');
 
     toggleBtn.addEventListener('click', () => {
+      if (!myContainer) {
+        console.warn('myContainer element not found');
+        return;
+      }
       if (myContainer.style.display === 'none' || myContainer.style.display === '') {
         myContainer.style.display = 'block';
       } else {
@@ -887,6 +895,39 @@
                 canvas: canvas,
                 interval: interval
               };
+
+              // --- COCO-SSD detection logic ---
+              // Use a separate overlay canvas for drawing results
+              let overlayCanvas = container.querySelector('.detection-overlay');
+              if (!overlayCanvas) {
+                overlayCanvas = document.createElement('canvas');
+                overlayCanvas.className = 'detection-overlay';
+                overlayCanvas.width = canvas.width;
+                overlayCanvas.height = canvas.height;
+                overlayCanvas.style.position = 'absolute';
+                overlayCanvas.style.left = '0';
+                overlayCanvas.style.top = '0';
+                overlayCanvas.style.pointerEvents = 'none';
+                overlayCanvas.style.zIndex = '15';
+                container.appendChild(overlayCanvas);
+              }
+              const overlayCtx = overlayCanvas.getContext('2d');
+
+              cocoSsd.load().then(model => {
+                setInterval(() => {
+                  model.detect(canvas).then(predictions => {
+                    overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+                    predictions.forEach(pred => {
+                      overlayCtx.strokeStyle = '#00FF00';
+                      overlayCtx.lineWidth = 2;
+                      overlayCtx.strokeRect(...pred.bbox);
+                      overlayCtx.fillStyle = '#00FF00';
+                      overlayCtx.font = '16px Arial';
+                      overlayCtx.fillText(pred.class, pred.bbox[0], pred.bbox[1] - 5);
+                    });
+                  });
+                }, 500);
+              });
             }
           };
           cameraStreamsDiv.appendChild(imgElem);
@@ -898,92 +939,75 @@
     // function addCameraPeer(cameraId, cameraStream) { /* ...removed... */ }
   </script>
   <script>
-    setTimeout(() => {
-      const canvascam = document.querySelector('#canvasdeduct');
-      const canvasframe = document.querySelector('#canvasframe');
-      const ctx = canvasframe.getContext('2d');
-  
-      // Load webcam stream
-      navigator.mediaDevices.getUserMedia({ canvascam: true })
-        .then((stream) => {
-          canvascam.srcObject = stream;
-        });
-  
-      // Load the COCO-SSD model
-      cocoSsd.load().then(model => {
-        // Run detection every 500ms
-        setInterval(() => {
-          model.detect(canvascam).then(predictions => {
-            ctx.clearRect(0, 0, canvasframe.width, canvasframe.height);
-            predictions.forEach(pred => {
-              // Draw box
-              ctx.strokeStyle = '#00FF00';
-              ctx.lineWidth = 2;
-              ctx.strokeRect(...pred.bbox);
-  
-              // Draw label
-              ctx.fillStyle = '#00FF00';
-              ctx.font = '16px Arial';
-              ctx.fillText(pred.class, pred.bbox[0], pred.bbox[1] - 5);
-            });
-          });
-        }, 500);
-      });
 
-      const button = document.querySelector('#toggleBtn');
-      const container = document.querySelector('.toggle-container');
+    // Move detection logic inside MJPEG image's onload handler
+    // ...existing code for MJPEG image...
+    // In the imgElem.onload handler, after canvas is created and drawing starts:
+    // Example:
+    // imgElem.onload = () => {
+    //   ...canvas creation and drawing...
+    //   cocoSsd.load().then(model => {
+    //     setInterval(() => {
+    //       model.detect(canvas).then(predictions => {
+    //         // Draw results on canvasframe or overlay
+    //       });
+    //     }, 500);
+    //   });
+    // }
 
-      button.addEventListener('click', () => {
-        console.log('Toggle button clicked');
-        container.classList.toggle('active-container'); // Replace 'active' with the class you want to toggle
-      });
-    }, 5000);    
+    // Keep toggle button logic
+    const button = document.querySelector('#toggleBtn');
+    const container = document.querySelector('.toggle-container');
+    button.addEventListener('click', () => {
+      console.log('Toggle button clicked');
+      container.classList.toggle('active-container');
+    });
 
-    const detectCanvas = document.getElementById('detectCanvas');
-    const videoCtx = videoCanvas.getContext('2d');
-    const detectCtx = detectCanvas.getContext('2d');
+    // const detectCanvas = document.getElementById('detectCanvas');
+    // const videoCtx = videoCanvas.getContext('2d');
+    // const detectCtx = detectCanvas.getContext('2d');
 
-    async function start() {
-      // Access webcam
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    // async function start() {
+    //   // Access webcam
+    //   const stream = await navigator.mediaDevices.getUserMedia({ video: true });
 
-      // Hidden video element
-      const video = document.createElement('video');
-      video.srcObject = stream;
-      video.setAttribute('playsinline', 'true'); // iOS support
-      await video.play();
+    //   // Hidden video element
+    //   const video = document.createElement('video');
+    //   video.srcObject = stream;
+    //   video.setAttribute('playsinline', 'true'); // iOS support
+    //   await video.play();
 
-      // Load COCO-SSD model
-      const model = await cocoSsd.load();
+    //   // Load COCO-SSD model
+    //   const model = await cocoSsd.load();
 
-      // Start rendering loop
-      function renderFrame() {
-        // Draw video frame
-        videoCtx.drawImage(video, 0, 0, videoCanvas.width, videoCanvas.height);
+    //   // Start rendering loop
+    //   function renderFrame() {
+    //     // Draw video frame
+    //     videoCtx.drawImage(video, 0, 0, videoCanvas.width, videoCanvas.height);
 
-        // Detect and draw
-        model.detect(video).then(predictions => {
-          detectCtx.clearRect(0, 0, detectCanvas.width, detectCanvas.height);
+    //     // Detect and draw
+    //     model.detect(video).then(predictions => {
+    //       detectCtx.clearRect(0, 0, detectCanvas.width, detectCanvas.height);
 
-          predictions.forEach(pred => {
-            const [x, y, width, height] = pred.bbox;
-            detectCtx.strokeStyle = '#00FF00';
-            detectCtx.lineWidth = 2;
-            detectCtx.strokeRect(x, y, width, height);
+    //       predictions.forEach(pred => {
+    //         const [x, y, width, height] = pred.bbox;
+    //         detectCtx.strokeStyle = '#00FF00';
+    //         detectCtx.lineWidth = 2;
+    //         detectCtx.strokeRect(x, y, width, height);
 
-            detectCtx.fillStyle = '#00FF00';
-            detectCtx.font = '16px Arial';
-            detectCtx.fillText(pred.class, x, y > 10 ? y - 5 : y + 15);
-          });
+    //         detectCtx.fillStyle = '#00FF00';
+    //         detectCtx.font = '16px Arial';
+    //         detectCtx.fillText(pred.class, x, y > 10 ? y - 5 : y + 15);
+    //       });
 
-          requestAnimationFrame(renderFrame);
-        });
-      }
+    //       requestAnimationFrame(renderFrame);
+    //     });
+    //   }
 
-      renderFrame();
-    }
+    //   renderFrame();
+    // }
 
-    start();
+    // Removed stray call to start() which was not defined
     document.addEventListener("DOMContentLoaded", function () {
       const container = document.getElementById('videos');
       if (!container) return;
@@ -1031,7 +1055,6 @@
     const leaveBtn = document.getElementById('leaveRoom');
     let hasLeft = false;
     function leaveRoom() {
-      console.log('apple');
       
       if (hasLeft) return;
       hasLeft = true;
@@ -1052,6 +1075,8 @@
     leaveBtn.onclick = leaveRoom;
     window.addEventListener('beforeunload', leaveRoom);
   </script>
+
+  <script src="/yolo.js"></script>
 </body>
 
 </html>
