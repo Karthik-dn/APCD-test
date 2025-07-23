@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WebRTC Video Room</title>
+</head>
+<body>
+  <h1>Welcome to the WebRTC Video Room</h1>
+  <form id="roomForm">
+    <label for="room">Room Name:</label>
+    <input type="text" id="room" name="room" required>
+    <button type="submit">Join Room</button>
+  </form>
+  <script>
+    document.getElementById('roomForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const room = document.getElementById('room').value.trim();
+      if(room) {
+        window.location.href = `room.html?room=${encodeURIComponent(room)}`;
+      }
+    });
+  </script>
+</body>
+</html>

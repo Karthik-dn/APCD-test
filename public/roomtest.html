@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Room</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    .multiple .video-container {
+      height: 50vh;
+    }
+
+    .double .video-container {
+      height: 100vh;
+    }
+
+    .multiple {
+      display: none !important;
+    }
+
+    video {
+
+      width: 100%;
+      height: 100%;
+      border: 1px solid #ccc;
+      margin: 0px;
+      object-fit: fill;
+
+    }
+
+    #leaveRoom::before {
+      content: "\f095";
+      /* Unicode for fa-video */
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      font-size: 20px;
+      color: #fff;
+    }
+
+    .video-on::before {
+      content: "\f03d";
+      /* Unicode for fa-video */
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      font-size: 20px;
+      color: #fff;
+    }
+
+    #toggleAudio {
+      font-size: 0px;
+    }
+
+    #toggleVideo {
+      font-size: 0px;
+    }
+
+    .audio-on::before {
+      content: "\f130";
+      /* Unicode for fa-microphone */
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      font-size: 20px;
+      color: #fff;
+    }
+
+    .audio-off::before {
+      content: "\f131";
+      /* Unicode for fa-microphone */
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      font-size: 20px;
+      color: #fff;
+    }
+
+    .video-off::before {
+      content: "\f4e2";
+      /* Unicode for fa-microphone */
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      font-size: 20px;
+      color: #fff;
+    }
+
+    #toggleBtn::before {
+      content: "\f0c9";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      font-size: 40px;
+      color: #000;
+    }
+
+    #videos {
+      display: grid !important;
+      grid-template-rows: repeat(1, auto) !important;
+      grid-template-columns: repeat(1, 100%);
+      justify-items: start;
+      align-items: start;
+
+      position: relative;
+      width: 100%;
+    }
+
+    #videos .video-container:only-child {
+      flex: 1 1 100%;
+      max-width: 100%;
+    }
+
+    .controls {
+      margin: 10px 0;
+    }
+
+    .video-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .expand-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(255, 255, 255, 0.8);
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 20px;
+      z-index: 2;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      transition: background 0.2s;
+    }
+
+    .expand-btn:hover {
+      background: #eee;
+    }
+
+    .video-container.expanded {
+      z-index: 10;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+      padding: 16px;
+      border-radius: 12px;
+    }
+
+    .video-container.expanded video,
+    .video-container.expanded canvas,
+    .video-container.expanded video {
+      width: 1920px;
+      height: 1080px;
+      max-width: 98vw;
+      max-height: 95vh;
+    }
+
+    .video-container {
+      transition: width 0.2s, height 0.2s;
+      width: 100%;
+      object-fit: cover;
+      height: 100%;
+    }
+
+    .video-container canvas {
+      height: 100%;
+      width: 100%;
+    }
+
+    .username {
+      font-size: 1rem;
+      margin-top: 4px;
+      color: #333;
+    }
+
+    .btn-controls {
+      display: flex;
+      justify-content: end;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    #leaveRoom {
+      background: red;
+      border: 1px solid red;
+      height: 50px;
+      width: 50px;
+      border-radius: 50%;
+      color: #fff;
+    }
+
+
+    #toggleVideo,
+    #toggleAudio {
+      background: #26ADE3;
+      border: 1px solid #26ADE3;
+      height: 50px;
+      width: 50px;
+      border-radius: 50%;
+      color: #fff;
+    }
+
+    #videoSource,
+    #cameraIdInput,
+    #rtspUrlInput {
+      font-size: 16px;
+      padding: 12px;
+      border-radius: 12px;
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      align-items: start;
+    }
+
+    #startScreen,
+    #stopScreen,
+    #addStreamBtn,
+    #startStreamBtn {
+      height: 50px;
+      border-radius: 10px;
+      background: #26ADE3;
+      border: 1px solid #26ADE3;
+      padding: 10px 24px;
+      color: #fff;
+      font-size: 16px;
+    }
+
+    .top-height {
+      height: 200px;
+    }
+
+    #local-container {
+      position: absolute;
+      right: 40px;
+      top: 40px;
+      height: 300px;
+      width: 300px;
+      z-index: 1;
+      border-radius: 20px;
+    }
+
+    #local-container #localVideo {
+      height: 300px !important;
+      border-radius: 30px;
+    }
+ 
+
+    .p-control-btn {
+      position: fixed;
+      bottom: 50px;
+      z-index: 1;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+    }
+
+    .toggle-container {
+      height: 0px;
+      width: 0px;
+      position: absolute;
+      z-index: 1;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .username {
+      display: none;
+    }
+
+    .active-container {
+      display: block !important;
+      position: absolute;
+      z-index: 1;
+      background: #fff;
+      height: 330px;
+      padding: 20px;
+      border-radius: 12px;
+      top: 100px;
+      left: 20px;
+      width: 40%;
+    }
+
+    .expand-btn {
+      display: none !important;
+    }
+
+    #streamInputContainer {
+      display: flex !important;
+      flex-direction: column;
+      gap: 16px;
+    }
+    video, canvas {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+
+    #toggleBtn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 1;
+      padding: 12px 24px;
+      border-radius: 12px;
+      border: 0px;
+      background: #fff;
+    }
+  </style>
+</head>
+
+<body style="height: 99vh; margin: 0px;">
+
+  <div id="room-info" style="font-size: 0px;"></div>
+
+  <div id="videos">
+    <button id="toggleBtn"></button>
+    <div class="toggle-container">
+      <div class="controls">
+        <button id="addStreamBtn">Add Stream</button>
+        <div id="streamInputContainer" style="display:none; margin-top:10px;">
+          <input type="text" id="cameraIdInput" placeholder="Camera ID (e.g. cam1)" style="width:120px;" />
+          <input type="text" id="rtspUrlInput" placeholder="Enter RTSP URL" style="width:320px;" />
+          <button id="startStreamBtn">Add Camera Stream</button>
+        </div>
+      </div>
+      <div class="btn-controls">
+
+        <a id="downloadLink" style="display:none;" download="recording.webm">Download Recording</a>
+      </div>
+    </div>
+    <div class="p-control-btn">
+      <button id="startScreen">Start Screen Recording</button>
+      <button id="stopScreen" disabled style="display: none;">Stop Recording</button>
+      <button id="leaveRoom"></button>
+      <button id="toggleVideo" aria-label="Toggle Video"></button>
+      <button id="toggleAudio" aria-label="Toggle Audio"></button>
+    </div>
+    <div class="video-container" id="local-container">
+      <video id="localVideo" autoplay muted playsinline></video>
+      <canvas id="canvastest" width="640" height="480"></canvas>
+      <div class="username" id="local-username"></div>
+      <button class="expand-btn" id="expand-local"
+        style="position:absolute;top:8px;right:8px;background:rgba(255,255,255,0.8);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;z-index:2;box-shadow:0 2px 6px rgba(0,0,0,0.1);transition:background 0.2s;">
+        <span id="expand-icon-local">&#x1f5d6;</span>
+      </button>
+    </div>
+  </div>
+
+  </div>
+
+  <div id="cameraStreamContainer" style="display:none; margin-top:10px;">
+    <div id="cameraStreams"></div>
+  </div>
+
+  <script>
+    const videotest = document.getElementById('video');
+    const canvastest = document.getElementById('canvastest');
+    const ctx = canvastest.getContext('2d');
+ 
+    // Load webcam stream
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then((stream) => {
+        videotest.srcObject = stream;
+      });
+ 
+    // Load the COCO-SSD model
+    cocoSsd.load().then(model => {
+      // Run detection every 500ms
+      setInterval(() => {
+        model.detect(videotest).then(predictions => {
+          ctx.clearRect(0, 0, canvastest.width, canvastest.height);
+          predictions.forEach(pred => {
+            // Draw box
+            ctx.strokeStyle = '#00FF00';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(...pred.bbox);
+ 
+            // Draw label
+            ctx.fillStyle = '#00FF00';
+            ctx.font = '16px Arial';
+            ctx.fillText(pred.class, pred.bbox[0], pred.bbox[1] - 5);
+          });
+        });
+      }, 500);
+    });
+    document.addEventListener("DOMContentLoaded", function () {
+      const container = document.getElementById('videos');
+      if (!container) return;
+
+      function updateClassBasedOnCount() {
+        const items = container.querySelectorAll('.video-container');
+
+        container.classList.remove('single', 'double', 'multiple');
+
+        if (items.length === 1) {
+          container.classList.add('single');
+        } else if (items.length === 2) {
+          container.classList.add('double');
+        } else if (items.length > 2) {
+          container.classList.add('multiple');
+        }
+      }
+
+      // Run once
+      updateClassBasedOnCount();
+
+      // Optional: observe for dynamically added containers
+      const observer = new MutationObserver(updateClassBasedOnCount);
+
+      observer.observe(container, {
+        childList: true,
+        subtree: true,
+      });
+    });
+
+
+    const button = document.getElementById('toggleBtn');
+    const container = document.querySelector('.toggle-container');
+
+    button.addEventListener('click', () => {
+      container.classList.toggle('active-container'); // Replace 'active' with the class you want to toggle
+    });
+
+    const startBn = document.getElementById('startScreen');
+    const stopBn = document.getElementById('stopScreen');
+
+    startBn.addEventListener('click', () => {
+      startBn.style.display = 'none';
+      stopBn.style.display = 'inline-block'; // or 'block' if needed
+    });
+
+    stopBn.addEventListener('click', () => {
+      stopBn.style.display = 'none';
+      startBn.style.display = 'inline-block'; // show start again
+    });
+
+  </script>
+  <script>
+    const videoButton = document.getElementById('toggleVideo');
+    const audioButton = document.getElementById('toggleAudio');
+
+    videoButton.addEventListener('click', () => {
+      videoButton.classList.toggle('video-on');
+      videoButton.classList.toggle('video-off');
+    });
+
+    audioButton.addEventListener('click', () => {
+      audioButton.classList.toggle('audio-on');
+      audioButton.classList.toggle('audio-off');
+    });
+
+    // Optionally set default state
+    videoButton.classList.add('video-on');
+    audioButton.classList.add('audio-on');
+
+
+    const toggleBtn = document.getElementById('toggleBtn');
+    const myContainer = document.getElementById('myContainer');
+
+    toggleBtn.addEventListener('click', () => {
+      if (myContainer.style.display === 'none' || myContainer.style.display === '') {
+        myContainer.style.display = 'block';
+      } else {
+        myContainer.style.display = 'none';
+      }
+    });
+
+  </script>
+  <script src="/socket.io/socket.io.js"></script>
+  <!-- TensorFlow.js and BodyPix -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.18.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix"></script>
+  <script>
+    // Display the room name from the URL
+    const params = new URLSearchParams(window.location.search);
+    const room = params.get('room');
+    document.getElementById('room-info').textContent = room ? `You are in room: ${room}` : 'No room specified.';
+
+    // Show/hide Add Stream button based on usertype
+    const userType = params.get('usertype');
+    const addStreamBtn = document.getElementById('addStreamBtn');
+    if (userType === 'c') {
+      addStreamBtn.style.display = 'none';
+    } else if (userType === 'i') {
+      addStreamBtn.style.display = '';
+    }
+
+    // Get user media (camera + mic)
+    const localVideo = document.getElementById('localVideo');
+    let localStream;
+    // Get username from URL parameter (support both 'userName' and 'username'), default to 'Anonymous'
+    let userName = params.get('userName') || params.get('username') || 'Anonymous';
+    const peers = {};
+    const videosDiv = document.getElementById('videos');
+    // Expand/collapse for local video
+    const localContainer = document.getElementById('local-container');
+    const expandLocalBtn = document.getElementById('expand-local');
+    let localExpanded = false;
+    expandLocalBtn.onclick = () => {
+      localExpanded = !localExpanded;
+      localContainer.classList.toggle('expanded', localExpanded);
+      document.getElementById('expand-icon-local').innerHTML = localExpanded ? '&#x1f5d5;' : '&#x1f5d6;';
+      if (localExpanded) {
+        startAnomalyDetection(localContainer.querySelector('video'));
+      } else {
+        stopAnomalyDetection();
+      }
+    };
+
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      .then(stream => {
+        localStream = stream;
+        localVideo.srcObject = stream;
+        document.getElementById('local-username').textContent = userName + ' (You)';
+        joinRoom();
+      })
+      .catch(err => {
+        localVideo.poster = '';
+        alert('Could not access camera/mic: ' + err.message + '\n\nPlease allow camera and microphone access in your browser settings.');
+        // Optionally, show a custom UI or retry button here
+      });
+
+    // --- WebRTC multi-peer logic ---
+    const socket = io();
+    // Store peer names
+    const peerNames = {};
+    function joinRoom() {
+      socket.emit('join-room', { roomId: room, userName });
+    }
+
+    // Receive the full peer list (including names) when joining
+    socket.on('peer-list', (peersInRoom) => {
+      Object.entries(peersInRoom).forEach(([id, name]) => {
+        if (id !== socket.id) {
+          peerNames[id] = name;
+          createPeerConnection(id, true, name);
+        }
+      });
+    });
+
+    // Listen for the list of existing peers and create connections to them
+    socket.on('new-user', ({ existingPeers }) => {
+      existingPeers.forEach(id => {
+        if (id !== socket.id && !peers[id]) {
+          createPeerConnection(id, true, peerNames[id] || 'Peer');
+        }
+      });
+    });
+
+    socket.on('user-connected', ({ socketId, userName: remoteName }) => {
+      peerNames[socketId] = remoteName;
+      // Do not call createPeerConnection here
+    });
+
+    socket.on('offer', async ({ caller, offer, userName: remoteName }) => {
+      peerNames[caller] = remoteName;
+      const pc = createPeerConnection(caller, false, remoteName);
+      await pc.setRemoteDescription(new RTCSessionDescription(offer));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      socket.emit('answer', { target: caller, answer });
+    });
+
+    socket.on('answer', async ({ caller, answer }) => {
+      const pc = peers[caller];
+      if (pc) await pc.setRemoteDescription(new RTCSessionDescription(answer));
+    });
+
+    socket.on('ice-candidate', ({ from, candidate }) => {
+      const pc = peers[from];
+      if (pc && candidate) pc.addIceCandidate(new RTCIceCandidate(candidate));
+    });
+
+    socket.on('user-disconnected', (socketId) => {
+      if (peers[socketId]) {
+        peers[socketId].close();
+        delete peers[socketId];
+        delete peerNames[socketId];
+        const container = document.getElementById('container-' + socketId);
+        if (container) container.remove();
+      }
+    });
+
+    function createPeerConnection(socketId, isInitiator, remoteName) {
+      if (peers[socketId]) return peers[socketId];
+      const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+      localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+      pc.onicecandidate = e => {
+        if (e.candidate) socket.emit('ice-candidate', { target: socketId, candidate: e.candidate });
+      };
+      pc.ontrack = e => {
+        let container = document.getElementById('container-' + socketId);
+        if (!container) {
+          container = document.createElement('div');
+          container.className = 'video-container';
+          container.id = 'container-' + socketId;
+          const video = document.createElement('video');
+          video.id = 'video-' + socketId;
+          video.autoplay = true;
+          video.playsInline = true;
+          container.appendChild(video);
+          const nameDiv = document.createElement('div');
+          nameDiv.className = 'username';
+          nameDiv.id = 'username-' + socketId;
+          nameDiv.textContent = peerNames[socketId] || remoteName || 'Peer';
+          container.appendChild(nameDiv);
+          // Expand/collapse icon button
+          const expandBtn = document.createElement('button');
+          expandBtn.className = 'expand-btn';
+          expandBtn.innerHTML = '<span id="expand-icon-' + socketId + '">&#x1f5d6;</span>'; // Unicode for expand icon
+          let expanded = false;
+          expandBtn.onclick = () => {
+            expanded = !expanded;
+            container.classList.toggle('expanded', expanded);
+            expandBtn.innerHTML = expanded ? '<span id="expand-icon-' + socketId + '">&#x1f5d5;</span>' : '<span id="expand-icon-' + socketId + '">&#x1f5d6;</span>';
+          };
+          container.appendChild(expandBtn);
+          videosDiv.appendChild(container);
+        }
+        const video = document.getElementById('video-' + socketId);
+        video.srcObject = e.streams[0];
+      };
+      if (isInitiator) {
+        pc.onnegotiationneeded = async () => {
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          socket.emit('offer', { target: socketId, offer, userName });
+        };
+      }
+      peers[socketId] = pc;
+      return pc;
+    }
+
+    // --- Screen recording ---
+    let mediaRecorder;
+    let recordedChunks = [];
+    const startBtn = document.getElementById('startScreen');
+    const stopBtn = document.getElementById('stopScreen');
+    const downloadLink = document.getElementById('downloadLink');
+
+    startBtn.onclick = async () => {
+      try {
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+        mediaRecorder = new MediaRecorder(screenStream);
+        recordedChunks = [];
+        mediaRecorder.ondataavailable = e => {
+          if (e.data.size > 0) recordedChunks.push(e.data);
+        };
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(recordedChunks, { type: 'video/webm' });
+          downloadLink.href = URL.createObjectURL(blob);
+          downloadLink.style.display = 'inline';
+        };
+        mediaRecorder.start();
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        downloadLink.style.display = 'none';
+      } catch (err) {
+        alert('Screen recording failed: ' + err.message);
+      }
+    };
+
+    stopBtn.onclick = () => {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+      }
+    };
+
+    // --- Leave room logic ---
+    const leaveBtn = document.getElementById('leaveRoom');
+    let hasLeft = false;
+    function leaveRoom() {
+      if (hasLeft) return;
+      hasLeft = true;
+      socket.disconnect();
+      Object.keys(peers).forEach(socketId => {
+        peers[socketId].close();
+        const video = document.getElementById('video-' + socketId);
+        if (video) video.remove();
+        delete peers[socketId];
+      });
+      if (localVideo.srcObject) {
+        localVideo.srcObject.getTracks().forEach(track => track.stop());
+        localVideo.srcObject = null;
+      }
+      document.getElementById('room-info').textContent = 'You have left the room.';
+      leaveBtn.disabled = true;
+    }
+    leaveBtn.onclick = leaveRoom;
+    window.addEventListener('beforeunload', leaveRoom);
+
+    // --- Video and Audio toggle logic ---
+    const toggleVideoBtn = document.getElementById('toggleVideo');
+    const toggleAudioBtn = document.getElementById('toggleAudio');
+    let videoEnabled = true;
+    let audioEnabled = true;
+    toggleVideoBtn.onclick = () => {
+      videoEnabled = !videoEnabled;
+      if (localStream) {
+        localStream.getVideoTracks().forEach(track => track.enabled = videoEnabled);
+      }
+      toggleVideoBtn.textContent = videoEnabled ? 'Video Off' : 'Video On';
+    };
+    toggleAudioBtn.onclick = () => {
+      audioEnabled = !audioEnabled;
+      if (localStream) {
+        localStream.getAudioTracks().forEach(track => track.enabled = audioEnabled);
+      }
+      toggleAudioBtn.textContent = audioEnabled ? 'Audio Off' : 'Audio On';
+    };
+    // Set initial button text
+    toggleVideoBtn.textContent = 'Video Off';
+    toggleAudioBtn.textContent = 'Audio Off';
+
+    // --- Camera selection UI ---
+    async function populateCameraOptions() {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoSelect = document.createElement('select');
+      videoSelect.id = 'videoSource';
+      devices.filter(d => d.kind === 'videoinput').forEach(device => {
+        const option = document.createElement('option');
+        option.value = device.deviceId;
+        option.text = device.label || `Camera ${videoSelect.length + 1}`;
+        videoSelect.appendChild(option);
+      });
+      const controls = document.querySelector('.controls');
+      controls.appendChild(videoSelect);
+      videoSelect.onchange = async () => {
+        if (localStream) {
+          localStream.getTracks().forEach(track => track.stop());
+        }
+        const newStream = await navigator.mediaDevices.getUserMedia({
+          video: { deviceId: { exact: videoSelect.value } },
+          audio: true
+        });
+        localStream = newStream;
+        localVideo.srcObject = newStream;
+        // Optionally, update all peer connections with the new stream
+      };
+    }
+
+    // Call this after page load
+    populateCameraOptions();
+
+    // --- Multiple Camera Stream Logic for All Peers ---
+    // ...existing code...
+    const streamInputContainer = document.getElementById('streamInputContainer');
+    const cameraIdInput = document.getElementById('cameraIdInput');
+    const rtspUrlInput = document.getElementById('rtspUrlInput');
+    const startStreamBtn = document.getElementById('startStreamBtn');
+    const cameraStreamContainer = document.getElementById('cameraStreamContainer');
+    const cameraStreamsDiv = document.getElementById('cameraStreams');
+
+    addStreamBtn.onclick = () => {
+      streamInputContainer.style.display = 'block';
+      cameraStreamContainer.style.display = 'block';
+    };
+
+    startStreamBtn.onclick = async () => {
+      const cameraId = cameraIdInput.value.trim();
+      const rtspUrl = rtspUrlInput.value.trim();
+      if (!cameraId || !rtspUrl) {
+        alert('Please enter both Camera ID and RTSP URL.');
+        return;
+      }
+      // Send cameraId and RTSP URL to backend to start streaming
+      await fetch('/start-camera-stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cameraId, rtspUrl })
+      });
+      streamInputContainer.style.display = 'none';
+      cameraIdInput.value = '';
+      rtspUrlInput.value = '';
+    };
+
+    // Listen for camera-list event and show all camera feeds
+    // Track previous camera IDs and active camera elements for optimization
+    let previousCameraIds = [];
+    const activeCameraElements = {};
+    socket.on('camera-list', (cameraIds) => {
+      // Remove camera streams that are no longer active
+      if (previousCameraIds.length > 0) {
+        previousCameraIds.forEach(prevId => {
+          if (!cameraIds.includes(prevId)) {
+            console.log(`ffmpeg process closed with code null, signal SIGTERM for cameraId: ${prevId}`);
+            // Clean up DOM elements and intervals
+            const elems = activeCameraElements[prevId];
+            if (elems) {
+              if (elems.interval) clearInterval(elems.interval);
+              if (elems.video && elems.video.parentNode) elems.video.parentNode.removeChild(elems.video);
+              if (elems.canvas && elems.canvas.parentNode) elems.canvas.parentNode.removeChild(elems.canvas);
+              if (elems.img && elems.img.parentNode) elems.img.parentNode.removeChild(elems.img);
+              if (elems.label && elems.label.parentNode) elems.label.parentNode.removeChild(elems.label);
+              // Remove peer container
+              const peerContainer = document.getElementById('container-' + prevId);
+              if (peerContainer) peerContainer.remove();
+              delete activeCameraElements[prevId];
+            }
+          }
+        });
+      }
+      previousCameraIds = cameraIds.slice();
+      cameraStreamContainer.style.display = cameraIds.length ? 'block' : 'none';
+      cameraIds.forEach(cameraId => {
+        // Only create elements if not already present
+        if (!activeCameraElements[cameraId]) {
+          // Create the main container for the camera feed
+          const containerId = 'container-' + cameraId;
+          let container = document.getElementById(containerId);
+          if (!container) {
+            container = document.createElement('div');
+            container.className = 'video-container';
+            container.id = containerId;
+            // Canvas will be inserted as first child later
+            // Username/label
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'username';
+            nameDiv.id = 'username-' + cameraId;
+            nameDiv.textContent = cameraId.toUpperCase() + ' (Camera)';
+            container.appendChild(nameDiv);
+            // Expand/collapse icon button
+            const expandBtn = document.createElement('button');
+            expandBtn.className = 'expand-btn';
+            expandBtn.innerHTML = '<span id="expand-icon-' + cameraId + '">&#x1f5d6;</span>';
+            let expanded = false;
+            expandBtn.onclick = () => {
+              expanded = !expanded;
+              container.classList.toggle('expanded', expanded);
+              expandBtn.innerHTML = expanded ? '<span id="expand-icon-' + cameraId + '">&#x1f5d5;</span>' : '<span id="expand-icon-' + cameraId + '">&#x1f5d6;</span>';
+              const canvas = container.querySelector('canvas');
+              if (expanded && canvas) {
+                startAnomalyDetection(canvas);
+              } else {
+                stopAnomalyDetection();
+              }
+            };
+            // --- TensorFlow.js BodyPix Human Segmentation Integration ---
+            let anomalyDetectionActive = false;
+            let anomalyDetectionInterval = null;
+            let overlayCanvas = null;
+            let bodyPixModel = null;
+            let bodyPixModelLoaded = false;
+            // Load BodyPix model on page load
+            bodyPix.load().then(model => {
+              bodyPixModel = model;
+              bodyPixModelLoaded = true;
+              console.log('BodyPix model loaded');
+            });
+
+            function startAnomalyDetection(mediaElem) {
+              if (anomalyDetectionActive) return;
+              if (!bodyPixModelLoaded) {
+                alert('Human segmentation model is still loading. Please wait a few seconds and try again.');
+                return;
+              }
+              anomalyDetectionActive = true;
+              // Create or get overlay canvas
+              if (!overlayCanvas) {
+                overlayCanvas = document.createElement('canvas');
+                overlayCanvas.style.position = 'absolute';
+                overlayCanvas.style.top = '0';
+                overlayCanvas.style.left = '0';
+                overlayCanvas.style.pointerEvents = 'none';
+                overlayCanvas.style.zIndex = '20';
+              }
+              // Use actual video/canvas resolution for detection and overlay
+              let width = mediaElem.width;
+              let height = mediaElem.height;
+              // If expanded, use higher resolution for overlay
+              if (mediaElem.parentNode && mediaElem.parentNode.classList.contains('expanded')) {
+                width = 1920;
+                height = 1080;
+              } else if (mediaElem.tagName === 'VIDEO') {
+                width = mediaElem.videoWidth || mediaElem.width;
+                height = mediaElem.videoHeight || mediaElem.height;
+              } else if (mediaElem.tagName === 'CANVAS') {
+                width = mediaElem.width;
+                height = mediaElem.height;
+              }
+              overlayCanvas.width = width;
+              overlayCanvas.height = height;
+              overlayCanvas.style.width = (mediaElem.style.width || width + 'px');
+              overlayCanvas.style.height = (mediaElem.style.height || height + 'px');
+              overlayCanvas.style.display = 'block';
+              overlayCanvas.style.zIndex = '9999';
+              overlayCanvas.style.pointerEvents = 'none';
+              mediaElem.parentNode.appendChild(overlayCanvas);
+              // Run segmentation every 800ms
+              anomalyDetectionInterval = setInterval(async () => {
+                if (!anomalyDetectionActive || !bodyPixModel) return;
+                // Get frame from video/canvas
+                let segmentation = null;
+                try {
+                  segmentation = await bodyPixModel.segmentMultiPerson(mediaElem, {
+                    internalResolution: 'high', // was 'medium'
+                    segmentationThreshold: 0.1  // was 0.3
+                  });
+                  console.log('BodyPix segmentation result:', segmentation);
+                } catch (e) {
+                  console.error('BodyPix segmentation error:', e);
+                }
+                const ctx = overlayCanvas.getContext('2d');
+                ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+                if (segmentation && segmentation.length > 0) {
+                  segmentation.forEach(seg => {
+                    // Calculate bounding box for each detected person
+                    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                    seg.data.forEach((label, idx) => {
+                      if (label === 1) { // 1 means person
+                        const x = idx % seg.width;
+                        const y = Math.floor(idx / seg.width);
+                        if (x < minX) minX = x;
+                        if (y < minY) minY = y;
+                        if (x > maxX) maxX = x;
+                        if (y > maxY) maxY = y;
+                      }
+                    });
+                    if (minX < Infinity && minY < Infinity && maxX > -Infinity && maxY > -Infinity) {
+                      // Draw a rectangle (bounding box) for each detected person
+                      const scaleX = overlayCanvas.width / seg.width;
+                      const scaleY = overlayCanvas.height / seg.height;
+                      ctx.beginPath();
+                      ctx.rect(minX * scaleX, minY * scaleY, (maxX - minX) * scaleX, (maxY - minY) * scaleY);
+                      ctx.lineWidth = 4;
+                      ctx.strokeStyle = 'lime';
+                      ctx.stroke();
+                      ctx.fillStyle = 'rgba(0,255,0,0.15)';
+                      ctx.fill();
+                    }
+                  });
+                } else {
+                  ctx.font = '28px Arial';
+                  ctx.fillStyle = 'red';
+                  ctx.fillText('No person detected', 40, 50);
+                  console.warn('No person detected by BodyPix.');
+                }
+              }, 800);
+            }
+
+            function stopAnomalyDetection() {
+              anomalyDetectionActive = false;
+              if (anomalyDetectionInterval) clearInterval(anomalyDetectionInterval);
+              anomalyDetectionInterval = null;
+              if (overlayCanvas && overlayCanvas.parentNode) overlayCanvas.parentNode.removeChild(overlayCanvas);
+            }
+            container.appendChild(expandBtn);
+            // Add to the main videos grid
+            videosDiv.appendChild(container);
+          }
+          // Create the img element to fetch the MJPEG stream
+          const streamElemId = 'cameraStream_' + cameraId;
+          const imgElem = document.createElement('img');
+          imgElem.id = streamElemId;
+          imgElem.style.display = 'none'; // Hide the img element
+          imgElem.src = '/camera-stream?cameraId=' + encodeURIComponent(cameraId);
+          imgElem.onload = () => {
+            // Only set up the canvas if not already set
+            const container = document.getElementById(containerId);
+            if (container && !container.querySelector('canvas')) {
+              const canvas = document.createElement('canvas');
+              canvas.width = 320;
+              canvas.height = 240;
+              const ctx = canvas.getContext('2d');
+              // Draw from the MJPEG <img> to the canvas at intervals
+              let interval = setInterval(() => {
+                ctx.drawImage(imgElem, 0, 0, canvas.width, canvas.height);
+              }, 100);
+              // Insert the canvas as the first child of the container
+              container.insertBefore(canvas, container.firstChild);
+              // Track elements for cleanup
+              activeCameraElements[cameraId] = {
+                img: imgElem,
+                canvas: canvas,
+                interval: interval
+              };
+            }
+          };
+          cameraStreamsDiv.appendChild(imgElem);
+        }
+      });
+    });
+
+    // Add camera stream to peer grid as virtual peer (no longer needed, logic merged above)
+    // function addCameraPeer(cameraId, cameraStream) { /* ...removed... */ }
+  </script>
+</body>
+
+</html>
